@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>hello , Run Volatility Plugins</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 30px; background: #f9f9f9; }
+  .container { max-width: 700px; margin: auto; background: white; padding: 20px; border-radius: 8px; }
+  pre { background: #222; color: #0f0; padding: 15px; height: 350px; overflow-y: scroll; }
+  a.button { display: inline-block; padding: 10px 20px; background: #4CAF50; color: white; text-decoration: none; border-radius: 4px; margin-top: 15px;}
+  a.button:hover { background: #45a049; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>Running Volatility Plugins</h2>
+  <pre id="pluginStatus">Starting plugins...\n</pre>
+  <a href="{{ url_for('choose_action') }}" class="button">Back to Menu</a>
+  <p><a href="{{ url_for('logout') }}">Logout</a></p>
+</div>
+
+<script>
+  const statusElem = document.getElementById('pluginStatus');
+
+  const evtSource = new EventSource("{{ url_for('plugins_status') }}");
+  evtSource.onmessage = function(e) {
+    statusElem.textContent += e.data + "\n";
+    statusElem.scrollTop = statusElem.scrollHeight;
+  };
+</script>
+</body>
+</html>

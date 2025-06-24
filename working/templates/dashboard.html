@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Memory Forensics Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; background: #f4f4f4; }
+        button { padding: 10px 20px; margin: 5px; }
+        #output { white-space: pre-wrap; background: #fff; padding: 1em; border: 1px solid #ccc; margin-top: 1em; }
+        #volatility-status { font-weight: bold; margin-top: 1em; }
+    </style>
+</head>
+<body>
+    <h2>Welcome to Memory Forensics Dashboard</h2>
+    <form id="uploadForm" enctype="multipart/form-data" method="POST" action="/upload_dump">
+        <label>Select a memory dump file:</label>
+        <input type="file" name="file">
+        <button type="submit">Upload Memory Dump</button>
+    </form>
+
+    <p>OR</p>
+    <form method="POST" action="/create_dump">
+        <button type="submit">Create Memory Dump</button>
+    </form>
+
+    <form id="pluginForm">
+        <label>Select a Volatility Plugin:</label>
+        <select name="plugin" id="pluginSelect">
+            <option value="windows.pslist">windows.pslist</option>
+            <option value="windows.cmdline">windows.cmdline</option>
+            <option value="windows.psscan">windows.psscan</option>
+            <option value="windows.pstree">windows.pstree</option>
+            <option value="windows.dlllist">windows.dlllist</option>
+            <option value="windows.netscan">windows.netscan</option>
+            <option value="windows.malfind">windows.malfind</option>
+            <option value="windows.handles">windows.handles</option>
+            <option value="windows.ldrmodules">windows.ldrmodules</option>
+            <option value="windows.modules">windows.modules</option>
+            <option value="windows.suspicious_threads">windows.suspicious_threads</option>
+            <option value="windows.hollowprocesses">windows.hollowprocesses</option>
+            <option value="windows.callbacks">windows.callbacks</option>
+            <option value="windows.registry.hivelist">windows.registry.hivelist</option>
+        </select>
+        <button type="button" onclick="runPlugin()">Run Plugin</button>
+    </form>
+
+    <div id="volatility-status">🔄 Waiting for plugin execution...</div>
+    <div id="output"></div>
+
+    <script>
+        function runPlugin() {
+            const plugin = document.getElementById("pluginSelect").value;
+            const outputDiv = document.getElementById("output");
+            const statusDiv = document.getElementById("volatility-status");
+            outputDiv.innerText = "";
+            statusDiv.innerText = `🔄 Running ${plugin}...`;
+
+            const evtSource = new EventSource(`/run_plugin_stream?plugin=${plugin}`);
+            evtSource.onmessage = function(event) {
+                outputDiv.innerText += event.data + "\n";
+            };
+            evtSource.onerror = function() {
+                statusDiv.innerText = `✅ Completed or Error during ${plugin}.`;
+                evtSource.close();
+            };
+        }
+    </script>
+</body>
+</html>

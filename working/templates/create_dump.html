@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Create Memory Dump</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 30px; background: #f9f9f9; }
+  .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; }
+  pre { background: #222; color: #0f0; padding: 15px; height: 250px; overflow-y: scroll; }
+  button { padding: 12px 20px; font-size: 16px; margin-top: 15px; cursor: pointer; background-color: #2196F3; border: none; color: white; border-radius: 4px;}
+  button:disabled { background: gray; cursor: not-allowed; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>Creating Memory Dump</h2>
+  <pre id="dumpStatus">Starting...</pre>
+  <button id="runPluginsBtn" disabled>Run Volatility Plugins</button>
+  <p><a href="{{ url_for('logout') }}">Logout</a></p>
+</div>
+
+<script>
+  const statusElem = document.getElementById('dumpStatus');
+  const runBtn = document.getElementById('runPluginsBtn');
+
+  const evtSource = new EventSource("{{ url_for('dump_status') }}");
+  evtSource.onmessage = function(e) {
+    statusElem.textContent += e.data + "\n";
+    statusElem.scrollTop = statusElem.scrollHeight;
+    if (e.data.includes("Dump creation complete.")) {
+      runBtn.disabled = false;
+    }
+  };
+
+  runBtn.onclick = () => {
+    window.location.href = "{{ url_for('run_plugins_page') }}";
+  };
+</script>
+</body>
+</html>

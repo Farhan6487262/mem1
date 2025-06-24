@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Upload Memory Dump</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 30px; background: #f9f9f9; }
+  .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 8px; }
+  input[type=file] { width: 100%; padding: 10px; margin: 10px 0; }
+  button { width: 100%; padding: 10px; background-color: #4CAF50; border: none; color: white; font-size: 16px; cursor: pointer; }
+  button:hover { background-color: #45a049; }
+  .error { color: red; }
+  .success { color: green; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>Upload Memory Dump File</h2>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, msg in messages %}
+        <p class="{{ category }}">{{ msg }}</p>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  <form method="post" enctype="multipart/form-data">
+    <input type="file" name="dumpfile" required />
+    <button type="submit">Upload</button>
+  </form>
+  <p><a href="{{ url_for('choose_action') }}">Back</a></p>
+  <p><a href="{{ url_for('logout') }}">Logout</a></p>
+</div>
+</body>
+</html>

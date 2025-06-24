@@ -1,0 +1,13 @@
+Flask
+flask-login
+flask-cors
+scikit-learn
+joblib
+requests
+pandas
+matplotlib
+reportlab
+fpdf2
+
+
+#pip install -r .\requirements.txt

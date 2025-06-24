@@ -12,3 +12,7 @@ __pycache__/
 
 # Ignore embedded repos
 volatility3/
+venv/ 
+__pycache__/ 
+*.pyc 
+volatility3/ 

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Memory Forensics & Malware Detection Dashboard</title>
+  <!-- ✅ Bootstrap 5 CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="bg-light">
+  <div class="container my-4">
+    <h1 class="mb-4 text-center">🧠 MEMORY FORENSIC & MALWARE DETECTION APPLICATION</h1>
+
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <form id="uploadForm" enctype="multipart/form-data" class="input-group">
+          <input type="file" class="form-control" name="dumpfile" accept=".dmp" required>
+          <button type="submit" class="btn btn-primary">📁 Upload Only .Dump</button>
+        </form>
+      </div>
+      <div class="col-md-6 text-end">
+        <button id="createDumpBtn" class="btn btn-secondary">🧠 Create Memory Dump File</button>
+        <button id="startAnalysisBtn" class="btn btn-success">🚀 Start Analysis</button>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-body">
+        <h5>📑 Note:</h5>
+        <h5> it will save the files at these folders </h5>
+        <p><strong>Note:</strong> TXT files → <code>plugin_outputs</code></p>
+        <p><strong>Note:</strong> CSV files → <code>clean_csv_outputs</code></p>
+        <p><strong>Note:</strong> Merged & predicted files → <code>merged_csv_outputs</code></p>
+              </div>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <canvas id="binaryPie"></canvas>
+      </div>
+      <div class="col-md-6">
+        <canvas id="categoryBar"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">📜 Status Log</div>
+      <div class="card-body bg-dark text-light" style="height: 300px; overflow-y: scroll;">
+        <pre id="statusLog"></pre>
+      </div>
+    </div>
+
+    <div class="text-end mt-3">
+      <a href="/logout" class="btn btn-danger">🚪 Logout</a>
+    </div>
+  </div>
+
+  <!-- ✅ Bootstrap JS for modal & popper (optional) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    function loadCharts() {
+      fetch("/chart_data")
+        .then(res => res.json())
+        .then(data => {
+          if (data.error) {
+            alert("Chart error: " + data.error);
+            return;
+          }
+          const binaryCtx = document.getElementById("binaryPie").getContext("2d");
+          new Chart(binaryCtx, {
+            type: 'pie',
+            data: {
+              labels: Object.keys(data.binary),
+              datasets: [{ data: Object.values(data.binary), backgroundColor: ['green', 'red'] }]
+              
+            },
+            options: {
+              plugins: {
+                title: {
+                  display: true,
+                  text: 'Binary Classification'
+                  
+            }
+          }
+        }
+            
+          });
+
+          const categoryCtx = document.getElementById("categoryBar").getContext("2d");
+          new Chart(categoryCtx, {
+            type: 'bar',
+            data: {
+              labels: Object.keys(data.category),
+              datasets: [{ label: 'Malware Type Count', data: Object.values(data.category), backgroundColor: 'orange' }]
+            },
+            options: {
+              plugins: {
+                title: {
+                  display: true,
+                  text: 'Multi Classification'
+                }
+              },
+              scales: {
+                y: {
+                 beginAtZero: true 
+                }
+              }
+            }
+          });
+        });
+    }
+
+    function listenToSSE() {
+      const log = document.getElementById("statusLog");
+      const eventSource = new EventSource("/sse");
+      eventSource.onmessage = function (event) {
+        const message = event.data;
+        log.textContent += message + "\n";
+        log.scrollTop = log.scrollHeight;
+        if (message.includes("Prediction complete") || message.includes("Full analysis pipeline completed")) {
+          loadCharts();
+        }
+      };
+    }
+
+    function sendPost(endpoint) {
+      fetch(endpoint, { method: 'POST' });
+    }
+
+    window.onload = function () {
+      listenToSSE();
+
+      document.getElementById("createDumpBtn").onclick = () => sendPost("/create_dump");
+      document.getElementById("startAnalysisBtn").onclick = () => sendPost("/start_analysis");
+
+      document.getElementById("uploadForm").onsubmit = function (event) {
+        event.preventDefault();
+        const formData = new FormData(event.target);
+        fetch("/upload_dump", { method: "POST", body: formData }).then(() => {
+          const log = document.getElementById("statusLog");
+          log.textContent += "📁 Dump file uploaded.\n";
+        });
+      };
+    };
+  </script>
+</body>
+</html>
