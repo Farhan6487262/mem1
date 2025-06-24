@@ -1,1 +1,14 @@
-"volatility3/" 
+# Ignore Python virtual environment
+venv/
+__pycache__/
+*.pyc
+
+# Ignore system files
+.DS_Store
+
+# Ignore IDE files
+.vscode/
+.idea/
+
+# Ignore embedded repos
+volatility3/
